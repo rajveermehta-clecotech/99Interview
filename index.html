@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>99Interview.com - Get Ready for Your Next Opportunity</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body>
+    <!-- Background Animation -->
+    <div class="background-animation">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+        <div class="floating-shape shape-4"></div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span>Your progress is saved</span>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Landing Screen -->
+        <div id="landing-screen" class="screen active">
+            <div class="content-card landing-card">
+                <div class="logo-container">
+                    <div class="logo">
+                        <i class="fas fa-briefcase"></i>
+                        <span>99Interview.com</span>
+                    </div>
+                </div>
+
+                <div class="hero-content">
+                    <h1 class="hero-title">Get ready for your next big opportunity</h1>
+                    <p class="hero-subtitle">Tell us what you're looking for!</p>
+
+                    <button id="get-started-btn" class="btn btn-primary btn-large">
+                        <span>Get Started</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <div class="features-preview">
+                    <div class="feature-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Quick 5-minute setup</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Secure & private</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-rocket"></i>
+                        <span>Fast track to opportunities</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Info Screen -->
+        <div id="user-info-screen" class="screen">
+            <div class="content-card form-card">
+                <div class="form-header">
+                    <h2>Let's start with your name</h2>
+                    <p>We'd love to know who we're talking to</p>
+                </div>
+
+                <form id="user-info-form">
+                    <div class="input-group">
+                        <div class="input-container">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="user-name" class="form-input" placeholder=" " required>
+                            <label for="user-name" class="floating-label">Full Name *</label>
+                        </div>
+                        <div class="input-error" id="name-error"></div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="back-to-landing">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Back</span>
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span>Continue</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Questions Screen -->
+        <div id="questions-screen" class="screen">
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <div class="progress-steps">
+                    <div class="step active" data-step="1">1</div>
+                    <div class="step" data-step="2">2</div>
+                    <div class="step" data-step="3">3</div>
+                    <div class="step" data-step="4">4</div>
+                    <div class="step" data-step="5">5</div>
+                </div>
+                <div class="progress-text">
+                    <span id="current-step">1</span> of <span id="total-steps">5</span>
+                </div>
+            </div>
+
+            <div class="content-card form-card">
+                <div id="question-container">
+                    <!-- Questions will be dynamically inserted here -->
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="prev-question" disabled>
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="next-question" disabled>
+                        <span>Next</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thank You Screen -->
+        <div id="thank-you-screen" class="screen">
+            <div class="content-card thank-you-card">
+                <div class="success-animation">
+                    <div class="checkmark-container">
+                        <i class="fas fa-check checkmark"></i>
+                    </div>
+                </div>
+
+                <div class="thank-you-content">
+                    <h2 id="thank-you-message">Thank you, we'll contact you soon!</h2>
+                    <p>We've received your information and will get back to you with the next steps within 24 hours.</p>
+
+                    <div class="next-steps">
+                        <div class="step-item">
+                            <i class="fas fa-email"></i>
+                            <span>Check your email for confirmation</span>
+                        </div>
+                        <div class="step-item">
+                            <i class="fas fa-calendar"></i>
+                            <span>We'll schedule your interview soon</span>
+                        </div>
+                        <div class="step-item">
+                            <i class="fas fa-handshake"></i>
+                            <span>Get ready for your opportunity!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="edit-responses">
+                        <i class="fas fa-edit"></i>
+                        <span>Edit Responses</span>
+                    </button>
+                    <button type="button" class="btn btn-primary" id="back-to-home">
+                        <i class="fas fa-home"></i>
+                        <span>Back to Home</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="screen loading-screen">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <p>Submitting your information...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/config.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/questions.js"></script>
+    <script src="js/navigation.js"></script>
+    <script src="js/form-handler.js"></script>
+    <script src="js/animations.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>

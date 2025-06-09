@@ -1,0 +1,87 @@
+    /* css/responsive.css */
+
+    @media (max-width: 768px) {
+        .container {
+            padding: var(--spacing-md);
+        }
+
+        .content-card {
+            padding: var(--spacing-xl);
+        }
+
+        .hero-title {
+            font-size: var(--font-size-2xl);
+        }
+
+        .hero-subtitle {
+            font-size: var(--font-size-base);
+        }
+
+        .features-preview {
+            flex-direction: column;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            justify-content: center;
+        }
+
+        .progress-steps {
+            gap: var(--spacing-sm);
+        }
+
+        .step {
+            width: 32px;
+            height: 32px;
+            font-size: var(--font-size-sm);
+        }
+
+        .next-steps {
+            gap: var(--spacing-md);
+        }
+
+        .step-item {
+            padding: var(--spacing-sm);
+        }
+
+        .toast {
+            right: var(--spacing-md);
+            left: var(--spacing-md);
+            top: var(--spacing-md);
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: var(--font-size-xl);
+        }
+
+        .content-card {
+            padding: var(--spacing-lg);
+        }
+
+        .logo {
+            font-size: var(--font-size-xl);
+        }
+
+        .logo i {
+            font-size: var(--font-size-2xl);
+        }
+
+        .form-input {
+            padding: var(--spacing-md) var(--spacing-md) var(--spacing-md) 2.5rem;
+        }
+
+        .floating-label {
+            left: 2.5rem;
+        }
+
+        .input-icon {
+            left: var(--spacing-sm);
+        }
+    }
