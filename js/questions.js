@@ -1,5 +1,6 @@
 // js/questions.js
-const QUESTIONS = [
+// Mock questions as fallback
+const MOCK_QUESTIONS = [
     {
         id: 'role',
         title: 'Which role are you applying for?',
@@ -62,13 +63,169 @@ const QUESTIONS = [
     }
 ];
 
+// Global questions variable
+let QUESTIONS = [];
+
+// Questions API Service
+class QuestionsService {
+    static async fetchQuestions() {
+        let attempts = 0;
+        
+        while (attempts < CONFIG.RETRY_ATTEMPTS) {
+            try {
+                console.log(`Attempting to fetch questions from API (attempt ${attempts + 1}/${CONFIG.RETRY_ATTEMPTS})`);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), CONFIG.API_TIMEOUT);
+                
+                const response = await fetch(CONFIG.QUESTIONS_API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`API response not ok: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                
+                // Validate the response structure
+                if (!Array.isArray(data) && !Array.isArray(data.questions)) {
+                    throw new Error('Invalid API response format');
+                }
+                
+                const questions = Array.isArray(data) ? data : data.questions;
+                
+                // Validate each question has required fields
+                const isValidQuestions = questions.every(q => 
+                    q.id && q.title && q.type && 
+                    (q.type === 'input' || (q.type === 'single-choice' && Array.isArray(q.options)))
+                );
+                
+                if (!isValidQuestions) {
+                    throw new Error('Invalid question structure in API response');
+                }
+                
+                console.log('Successfully fetched questions from API');
+                return questions;
+                
+            } catch (error) {
+                attempts++;
+                console.warn(`Failed to fetch questions (attempt ${attempts}):`, error.message);
+                
+                if (attempts >= CONFIG.RETRY_ATTEMPTS) {
+                    console.warn('All API attempts failed, falling back to mock questions');
+                    return null;
+                }
+                
+                // Wait before retry (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempts));
+            }
+        }
+        
+        return null;
+    }
+    
+    static async initializeQuestions() {
+        try {
+            // Show loading indicator
+            this.showQuestionsLoading();
+            
+            // Try to fetch from API
+            const apiQuestions = await this.fetchQuestions();
+            
+            if (apiQuestions) {
+                QUESTIONS = apiQuestions;
+                this.showQuestionsLoadSuccess('API');
+            } else {
+                // Fallback to mock questions
+                QUESTIONS = MOCK_QUESTIONS;
+                this.showQuestionsLoadSuccess('Mock');
+            }
+            
+            // Hide loading indicator
+            this.hideQuestionsLoading();
+            
+            return QUESTIONS;
+            
+        } catch (error) {
+            console.error('Failed to initialize questions:', error);
+            QUESTIONS = MOCK_QUESTIONS;
+            this.showQuestionsLoadSuccess('Mock');
+            this.hideQuestionsLoading();
+            return QUESTIONS;
+        }
+    }
+    
+    static showQuestionsLoading() {
+        // Create and show loading toast
+        const toast = document.createElement('div');
+        toast.id = 'questions-loading-toast';
+        toast.className = 'toast show';
+        toast.innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading questions...</span>
+        `;
+        document.body.appendChild(toast);
+    }
+    
+    static hideQuestionsLoading() {
+        const toast = document.getElementById('questions-loading-toast');
+        if (toast) {
+            toast.remove();
+        }
+    }
+    
+    static showQuestionsLoadSuccess(source) {
+        const toast = document.createElement('div');
+        toast.className = 'toast show';
+        toast.innerHTML = `
+            <i class="fas fa-check-circle"></i>
+            <span>Questions loaded from ${source}</span>
+        `;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+}
+
 class QuestionRenderer {
     constructor() {
         this.currentQuestion = 0;
         this.responses = {};
+        this.questionsLoaded = false;
+    }
+    
+    async ensureQuestionsLoaded() {
+        if (!this.questionsLoaded) {
+            await QuestionsService.initializeQuestions();
+            this.questionsLoaded = true;
+        }
     }
 
-    renderQuestion(questionIndex) {
+    async renderQuestion(questionIndex) {
+        // Ensure questions are loaded before rendering
+        await this.ensureQuestionsLoaded();
+        
+        if (!QUESTIONS || QUESTIONS.length === 0) {
+            this.showError('No questions available');
+            return;
+        }
+        
+        if (questionIndex >= QUESTIONS.length) {
+            console.error('Question index out of bounds');
+            return;
+        }
+        
         const question = QUESTIONS[questionIndex];
         const container = document.getElementById('question-container');
 
@@ -92,6 +249,24 @@ class QuestionRenderer {
 
         // Restore previous answer if exists
         this.restoreAnswer(question);
+    }
+    
+    showError(message) {
+        const container = document.getElementById('question-container');
+        container.innerHTML = `
+            <div class="question active">
+                <div class="question-title" style="color: var(--error-color);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Error: ${message}
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        <i class="fas fa-refresh"></i>
+                        <span>Retry</span>
+                    </button>
+                </div>
+            </div>
+        `;
     }
 
     renderMultipleChoice(container, question) {
@@ -247,7 +422,7 @@ class QuestionRenderer {
     }
 
     getTotalSteps() {
-        return QUESTIONS.length;
+        return QUESTIONS.length || MOCK_QUESTIONS.length;
     }
 
     getResponses() {

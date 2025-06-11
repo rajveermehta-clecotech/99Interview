@@ -54,17 +54,69 @@ class Navigation {
         }
     }
 
-    initQuestionsScreen() {
-        // Load progress if exists
-        if (this.questionRenderer.loadProgress()) {
-            // Restore progress
+    async initQuestionsScreen() {
+        try {
+            // Show loading state while initializing questions
+            this.showQuestionsScreenLoading();
+            
+            // Ensure questions are loaded
+            await this.questionRenderer.ensureQuestionsLoaded();
+            
+            // Load progress if exists
+            if (this.questionRenderer.loadProgress()) {
+                // Restore progress
+                this.updateProgress();
+                this.updateNavigationButtons();
+            }
+
+            // Hide loading state
+            this.hideQuestionsScreenLoading();
+            
+            // Render current question
+            await this.questionRenderer.renderQuestion(this.questionRenderer.getCurrentStep());
             this.updateProgress();
             this.updateNavigationButtons();
+            
+        } catch (error) {
+            console.error('Failed to initialize questions screen:', error);
+            this.hideQuestionsScreenLoading();
+            this.showQuestionsError();
         }
-
-        this.questionRenderer.renderQuestion(this.questionRenderer.getCurrentStep());
-        this.updateProgress();
-        this.updateNavigationButtons();
+    }
+    
+    showQuestionsScreenLoading() {
+        const container = document.getElementById('question-container');
+        container.innerHTML = `
+            <div class="question active" style="text-align: center;">
+                <div class="loading-spinner">
+                    <div class="spinner"></div>
+                    <p>Loading questions...</p>
+                </div>
+            </div>
+        `;
+    }
+    
+    hideQuestionsScreenLoading() {
+        // Loading will be cleared when renderQuestion is called
+    }
+    
+    showQuestionsError() {
+        const container = document.getElementById('question-container');
+        container.innerHTML = `
+            <div class="question active" style="text-align: center;">
+                <div class="question-title" style="color: var(--error-color);">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Failed to Load Questions
+                </div>
+                <p style="color: var(--text-secondary); margin: 1rem 0;">
+                    There was an error loading the questions. Please try again.
+                </p>
+                <button class="btn btn-primary" onclick="location.reload()">
+                    <i class="fas fa-refresh"></i>
+                    <span>Retry</span>
+                </button>
+            </div>
+        `;
     }
 
     initThankYouScreen() {
@@ -73,13 +125,13 @@ class Navigation {
         thankYouMessage.textContent = `Thank you ${userName}, we'll contact you soon!`;
     }
 
-    nextQuestion() {
+    async nextQuestion() {
         const currentStep = this.questionRenderer.getCurrentStep();
         const totalSteps = this.questionRenderer.getTotalSteps();
 
         if (currentStep < totalSteps - 1) {
             this.questionRenderer.setCurrentStep(currentStep + 1);
-            this.questionRenderer.renderQuestion(this.questionRenderer.getCurrentStep());
+            await this.questionRenderer.renderQuestion(this.questionRenderer.getCurrentStep());
             this.updateProgress();
             this.updateNavigationButtons();
             this.questionRenderer.autoSave();
@@ -89,12 +141,12 @@ class Navigation {
         }
     }
 
-    prevQuestion() {
+    async prevQuestion() {
         const currentStep = this.questionRenderer.getCurrentStep();
 
         if (currentStep > 0) {
             this.questionRenderer.setCurrentStep(currentStep - 1);
-            this.questionRenderer.renderQuestion(this.questionRenderer.getCurrentStep());
+            await this.questionRenderer.renderQuestion(this.questionRenderer.getCurrentStep());
             this.updateProgress();
             this.updateNavigationButtons();
         }
@@ -127,14 +179,21 @@ class Navigation {
         const currentStep = this.questionRenderer.getCurrentStep();
         const totalSteps = this.questionRenderer.getTotalSteps();
         const responses = this.questionRenderer.getResponses();
-        const currentQuestionId = QUESTIONS[currentStep].id;
+        
+        // Ensure QUESTIONS is loaded before accessing it
+        if (!QUESTIONS || QUESTIONS.length === 0) {
+            console.warn('Questions not loaded yet');
+            return;
+        }
+        
+        const currentQuestionId = QUESTIONS[currentStep]?.id;
 
         // Update prev button
         document.getElementById('prev-question').disabled = currentStep === 0;
 
         // Update next button
         const nextBtn = document.getElementById('next-question');
-        const hasResponse = responses[currentQuestionId] !== undefined;
+        const hasResponse = currentQuestionId && responses[currentQuestionId] !== undefined;
         nextBtn.disabled = !hasResponse;
 
         // Update next button text for last question
@@ -155,7 +214,8 @@ class Navigation {
         const submissionData = {
             user_name: userName,
             responses: Object.values(responses),
-            submitted_at: new Date().toISOString()
+            submitted_at: new Date().toISOString(),
+            questions_source: QUESTIONS === MOCK_QUESTIONS ? 'mock' : 'api'
         };
 
         try {
@@ -214,6 +274,9 @@ class Navigation {
 
         // Reset question renderer
         this.questionRenderer = new QuestionRenderer();
+
+        // Reset questions loading state
+        QUESTIONS = [];
 
         // Clear form
         document.getElementById('user-info-form').reset();
